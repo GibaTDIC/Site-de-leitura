@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>Analisador Silábico</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --background: #f8f9fa;
+            --text-color: #2c3e50;
+            --structure-color: #e67e22;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            background-color: var(--background);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            text-align: center;
+            margin-top: -300px;
+        }
+
+        .div-menu {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            
+        }
+
+
+        button {
+            padding: 12px 20px;
+            margin: 5px 0;
+            cursor: pointer;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+        }
+
+        #nivel {
+            background-color: orange;
+        }
+        
+        #analisador {
+            background-color: purple;
+        }
+
+        button:hover {
+            background-color: #023368;
+        }
+
+        h1 {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        .input-group input,
+        .input-group button {
+            width: 100%;
+            padding: 14px;
+            font-size: 1rem;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+
+        .input-group input {
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(52,152,219,0.2);
+        }
+
+        .input-group button {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .input-group button:hover {
+            background-color: #2980b9;
+        }
+
+        #results {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .result-item {
+            padding: 14px;
+            background: #f1f1f1;
+            border-radius: 8px;
+            border-left: 5px solid var(--secondary-color);
+            display: flex;
+            justify-content: space-between;
+            font-size: 1rem;
+            transition: transform 0.2s ease;
+        }
+
+        .result-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+        }
+
+        .structure {
+            color: var(--structure-color);
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                width: 90%;
+                padding: 15px;
+                border-radius: 10px;
+            }
+
+            h1 {
+                font-size: 1.6rem;
+            }
+
+            button {
+                padding: 12px;
+            }
+
+            .result-item {
+                font-size: 0.9rem;
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+
+    <div class="container">
+        <div class="div-menu">
+            <button class="botao" onclick="window.location.href='index.html'">leitura</button>
+            <button class="botao" id="nivel" onclick="window.location.href='third.html'">Nivel</button>
+            <button class="botao" id="analisador" onclick="window.location.href='second.html'">Analisador</button>
+        </div>
+
+        <h1>🅠 Analisador Silábico</h1>
+
+        <div class="input-group">
+            <input type="text" id="wordInput"
+                   placeholder="Digite palavras (separadas por vírgula ou espaço)"
+                   autofocus>
+            <button onclick="analyzeWords()" id="analyzeButton">🔍 Analisar</button>
+        </div>
+
+        <div id="results"></div>
+    </div>
+
+    <script>
+        function getSyllableStructure(word) {
+            const cleanedWord = word.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z]/g, '');
+            if (!cleanedWord) return null;
+            const syllableRegex = /^([^aeiou]*)([aeiou]+)([^aeiou]*)(?=[^aeiou]|$)/i;
+            const match = cleanedWord.match(syllableRegex);
+            if (!match) return null;
+            const [_, onset, nucleus, coda] = match;
+            return { original: word, structure: onset.replace(/./g, 'C') + nucleus.replace(/./g, 'V') + coda.replace(/./g, 'C') };
+        }
+
+        function analyzeWords() {
+            const input = document.getElementById('wordInput').value;
+            const words = input.split(/[,\s]+/).filter(word => word.trim());
+            const resultsDiv = document.getElementById('results');
+            const button = document.getElementById('analyzeButton');
+
+            button.classList.add('loading');
+            resultsDiv.innerHTML = '';
+
+            setTimeout(() => {
+                button.classList.remove('loading');
+                if (words.length === 0) {
+                    resultsDiv.innerHTML = '<div class="result-item" style="color: #e74c3c; background: #fdedec;">⚠️ Digite palavras válidas</div>';
+                    return;
+                }
+
+                let groupedResults = {};
+                words.forEach(word => {
+                    const result = getSyllableStructure(word);
+                    if (result) {
+                        if (!groupedResults[result.structure]) {
+                            groupedResults[result.structure] = [];
+                        }
+                        groupedResults[result.structure].push(result.original);
+                    }
+                });
+
+                for (const structure in groupedResults) {
+                    const div = document.createElement('div');
+                    div.className = 'result-item';
+                    div.innerHTML = `<span><span class="structure">${structure}</span>: ${groupedResults[structure].join(", ")}</span>`;
+                    resultsDiv.appendChild(div);
+                }
+            }, 500);
+        }
+    </script>
+</body>
+</html>

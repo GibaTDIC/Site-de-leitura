@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 15px;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+        #textoContainer {
+            margin-top: 15px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            background-color: white;
+            border-radius: 5px;
+            overflow-wrap: break-word;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .word {
+            cursor: pointer;
+            padding: 3px;
+            margin: 2px;
+            display: inline-block;
+            font-size: 16px;
+            position: relative;
+        }
+        .errada {
+            color: red;
+            text-decoration: underline wavy red;
+        }
+        .pseudo {
+            color: green;
+            text-decoration: underline wavy green;
+        }
+        .parada {
+            background-color: rgb(213, 182, 255);
+        }
+        #textInput {
+            width: 100%;
+            height: 150px;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 2px solid #ccc;
+            font-family: monospace;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        #controls {
+            margin: 15px 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center; 
+            width: 100%;
+        }
+        
+        button {
+            padding: 12px 20px;
+            margin: 5px 0;
+            cursor: pointer;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+        }
+
+        .container-botoes {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 10px;
+            
+        
+        }
+
+        .botao {
+            padding: 12px 20px;
+            margin: 5px 0;
+            cursor: pointer;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+        }
+
+        #nivel {
+            background-color: orange;
+        }
+        
+        #analisador {
+            background-color: purple;
+        }
+
+        .botao:hover {
+            background-color: #000b6e;
+        }
+        #cronometro {
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 10px;
+        }
+        #resultado {
+            width: 100%;
+            height: 50px;
+            padding: 8px;
+            margin-top: 10px;
+            border: 2px solid #ccc;
+            font-family: monospace;
+            border-radius: 5px;
+            box-sizing: border-box;
+            resize: none;
+        }
+
+        .reiniciartd-hover {
+            background-color: #007BFF;
+        }
+
+        .carregartd-hover {
+            background-color: #007BFF;
+        }
+
+        .iniciar-hover {
+            background-color: #007BFF;
+        }
+
+        .erro-hover {
+            background-color: #ff0000;
+        }
+
+        .pseudo-hover {
+            background-color: #0cff2c;
+        }
+
+        .parar-hover {
+            background-color: #ae00ff;
+        }
+
+/*  ------------------------------------------------------------------------------*/
+        .reiniciartd-hover:hover {
+            background-color: #160297;
+        }
+
+        .carregartd-hover:hover {
+            background-color: #160297;
+        }
+
+        .iniciar-hover:hover {
+            background-color: #160297;
+        }
+
+        .erro-hover:hover {
+            background-color: #8a0101;
+        }
+
+        .pseudo-hover:hover {
+            background-color: #009414;
+        }
+
+        .parar-hover:hover {
+            background-color: #680197;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+                margin: 10px;
+            }
+            .word {
+                font-size: 14px;
+            }
+            button {
+                width: 100%;
+                justify-content: center;
+            }
+            #textInput {
+                height: 120px;
+                font-size: 14px;
+            }
+            #textoContainer {
+                margin-top: 10px;
+                padding: 8px;
+            }
+            #controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            .container-botoes {
+                flex-direction: column;
+                align-items: center;
+            }
+            h1 {
+                font-size: 24px;
+            }
+            #cronometro {
+                font-size: 18px;
+            }
+            #resultado {
+                height: 65px;
+                font-size: 14px;
+            }
+        }
+
+
+    </style>
+    <script>
+        let tempo = 60;
+        let intervalo;
+        let modoPseudo = false;
+        let palavrasErradas = new Set();
+        let palavrasPseudos = new Set();
+        let palavraParar = null;
+
+        function iniciarTimer() {
+            clearInterval(intervalo);
+            tempo = 60;
+            document.getElementById("cronometro").textContent = "1:00";
+            intervalo = setInterval(() => {
+                tempo--;
+                let minutos = Math.floor(tempo / 60);
+                let segundos = tempo % 60;
+                document.getElementById("cronometro").textContent = `${minutos}:${segundos < 10 ? '0' : ''}${segundos}`;
+                if (tempo <= 0) clearInterval(intervalo);
+            }, 1000);
+
+            // Reset all markings
+            const palavras = document.querySelectorAll('.word');
+            palavras.forEach(palavra => {
+                palavra.classList.remove('errada', 'pseudo', 'parada');
+                palavra.onclick = () => marcarPalavra(palavra); // Reset to default click action
+            });
+            palavrasErradas.clear();
+            palavrasPseudos.clear();
+            palavraParar = null;
+
+            // Clear result text area
+            document.getElementById('resultado').value = '';
+        }
+
+        function carregarTexto() {
+            const texto = document.getElementById('textInput').value;
+            const container = document.getElementById('textoContainer');
+            container.innerHTML = '';
+            palavrasErradas.clear();
+            palavrasPseudos.clear();
+            palavraParar = null;
+            const palavras = texto.split(' ');
+            palavras.forEach(palavra => {
+                const span = document.createElement('span');
+                span.className = 'word';
+                span.textContent = palavra + ' ';
+                span.onclick = () => marcarPalavra(span);
+                container.appendChild(span);
+            });
+        }
+
+        function marcarPalavra(span) {
+            if (modoPseudo) {
+                span.classList.toggle('pseudo');
+                if (span.classList.contains('pseudo')) {
+                    palavrasPseudos.add(span.textContent.trim());
+                } else {
+                    palavrasPseudos.delete(span.textContent.trim());
+                }
+            } else {
+                span.classList.toggle('errada');
+                if (span.classList.contains('errada')) {
+                    palavrasErradas.add(span.textContent.trim());
+                } else {
+                    palavrasErradas.delete(span.textContent.trim());
+                }
+            }
+        }
+
+        function ativarPseudo() {
+            modoPseudo = !modoPseudo;
+        }
+
+        function marcarParar() {
+            const palavras = document.querySelectorAll('.word');
+            palavras.forEach((palavra, index) => {
+                palavra.classList.remove('parada');
+                palavra.onclick = () => {
+                    palavraParar = index;
+                    palavras.forEach((p, i) => {
+                        if (i <= palavraParar) {
+                            p.classList.add('parada');
+                        }
+                    });
+                    calcularResultado();
+                };
+            });
+        }
+
+        function calcularResultado() {
+            const palavras = document.querySelectorAll('.word');
+            let totalPalavras = palavraParar + 1;
+            let palavrasCorretas = totalPalavras - palavrasErradas.size;
+            let percentual = (palavrasCorretas / totalPalavras) * 100;
+            let classificacao = percentual <= 50 ? 1 : percentual <= 80 ? 2 : 3;
+            document.getElementById('resultado').value = `Resultado ${classificacao} | Acertos: ${percentual.toFixed(2)}% | Total: ${palavrasCorretas} | Pseudos: ${palavrasPseudos.size}`;
+        }
+
+        function reiniciarTudo() {
+            clearInterval(intervalo);
+            tempo = 60;
+            document.getElementById("cronometro").textContent = "1:00";
+            document.getElementById('textInput').value = '';
+            document.getElementById('textoContainer').innerHTML = '';
+            document.getElementById('resultado').value = '';
+            palavrasErradas.clear();
+            palavrasPseudos.clear();
+            palavraParar = null;
+            modoPseudo = false;
+            // Set focus on the "Erro" button
+            document.getElementById('erroButton').focus();
+        }
+    </script>
+</head>
+<body>
+
+    <div class="container-botoes">
+        <button class="botao" onclick="window.location.href='index.html'">leitura</button>
+        <button class="botao" id="nivel" onclick="window.location.href='third.html'">Nivel</button>
+        <button class="botao" id="analisador" onclick="window.location.href='second.html'">Analisador</button>
+        
+    </div>
+
+    <h1>Classificador Silábico</h1>
+
+    <div id="controls">
+        <button class="carregartd carregartd-hover" onclick="carregarTexto()">Carregar Texto</button>
+        <button class="reiniciartd reiniciartd-hover" onclick="reiniciarTudo()">Reiniciar Tudo</button>
+    </div>
+    
+    <textarea id="textInput" placeholder="Cole seu texto aqui..."></textarea>
+    <div id="controls">
+        <button class="iniciar-hover" onclick="iniciarTimer()">Iniciar</button>
+        <button class="erro-hover" id="erroButton" onclick="modoPseudo = false;">Erro</button>
+        <button class="pseudo-hover" onclick="ativarPseudo()">Pseudo</button>
+        <button class="parar-hover" onclick="marcarParar()">Parar</button>
+    </div>
+    </div>
+    <div id="cronometro">1:00</div>
+    <div id="textoContainer"></div>
+    <textarea id="resultado" readonly></textarea>    
+</body>
+</html>

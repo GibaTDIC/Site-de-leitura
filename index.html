@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 15px;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+        #textoContainer {
+            margin-top: 15px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            background-color: white;
+            border-radius: 5px;
+            overflow-wrap: break-word;
+        }
+        .word {
+            cursor: pointer;
+            padding: 3px;
+            margin: 2px;
+            display: inline-block;
+            font-size: 16px;
+            position: relative;
+        }
+        .errada {
+            color: red;
+            text-decoration: underline wavy red;
+        }
+        #textInput {
+            width: 100%;
+            height: 150px;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 2px solid #ccc;
+            font-family: monospace;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        #controls {
+            margin: 15px 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        button {
+            padding: 12px 20px;
+            margin: 5px 0;
+            cursor: pointer;
+            background-color: blue;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+        }
+
+        .container-botoes {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 10px;
+          
+        
+        }
+        #nivel {
+            background-color: orange;
+        }
+        
+        #analisador {
+            background-color: purple;
+        }
+
+        button:hover {
+            background-color: #023368;
+        }
+        #errosList {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #fff;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        .botoes-erros {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        #estatisticas {
+            margin: 15px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        .sugestao {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #fff;
+            border: 1px solid #ccc;
+            padding: 5px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            white-space: nowrap;
+            z-index: 1;
+        }
+        footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 0.8em;
+            color: #666;
+            padding: 10px;
+            border-top: 1px solid #eee;
+        }
+
+        .mensagem {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+            min-width: 200px;
+            display: none;
+        }
+
+        .mensagem.sucesso {
+            background-color: #1bcc44;
+            color: white;
+            display: block;
+        }
+
+        .mensagem.erro {
+            background-color: #f01329;
+            color: white;
+            display: block;
+        }
+
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+                margin: 10px;
+            }
+            .word {
+                font-size: 14px;
+            }
+            button {
+                width: 100%;
+                justify-content: center;
+            }
+            #textInput {
+                height: 120px;
+                font-size: 14px;
+            }
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/js/all.min.js"></script>
+</head>
+<body>
+    <div class="container-botoes">
+        <button class="botao" onclick="window.location.href='index.html'">leitura</button>
+        <button class="botao" id="nivel" onclick="window.location.href='third.html'">Nivel</button>
+        <button class="botao" id="analisador" onclick="window.location.href='second.html'">Analisador</button>
+       
+    </div>
+   
+    
+    <h2>Analisador de Leitura Avançado</h2>
+    
+    <div id="estatisticas">
+        <strong>Estatísticas:</strong><br>
+        Palavras: <span id="contadorPalavras">0</span> | 
+        Caracteres: <span id="contadorCaracteres">0</span> | 
+        Tempo de leitura: <span id="tempoLeitura">0</span> min
+    </div>
+
+    <textarea id="textInput" placeholder="Cole seu texto aqui..."></textarea>
+    
+    <div id="controls">
+        <button onclick="carregarTexto()"><i class="fas fa-upload"></i> Carregar Texto</button>
+        <button onclick="resetarTudo()"><i class="fas fa-redo"></i> Reiniciar Tudo</button>
+    </div>
+
+    <div id="textoContainer"></div>
+    
+    <div id="errosList">
+        <h3>Palavras marcadas como erradas: <span id="contadorErros">0</span></h3>
+        <div id="listaErros"></div>
+        <div class="botoes-erros">
+            <button onclick="mostrarErros()"><i class="fas fa-eye"></i> Mostrar Erros</button>
+            <button onclick="copiarErros()"><i class="fas fa-copy"></i> Copiar Erros</button>
+            <button onclick="limparMarcacoes()"><i class="fas fa-eraser"></i> Limpar Marcadores</button>
+        </div>
+    </div>
+
+    <footer>
+        Todos os direitos reservados a CEMTEC - Centro Municipl de Tecnologia Robótica e Ciência.
+    </footer>
+
+    <script>
+        let palavrasMarcadas = new Set();
+        const sugestoes = {
+            'errado': 'correto',
+            'errada': 'correta',
+            'problema': 'questão',
+            'fazer': 'realizar'
+        };
+
+        // Carrega dados salvos ao iniciar
+        window.addEventListener('load', () => {
+            const savedText = localStorage.getItem('analisadorTexto');
+            if(savedText) {
+                document.getElementById('textInput').value = savedText;
+                carregarTexto();
+            }
+        });
+
+        function carregarTexto() {
+            const texto = document.getElementById('textInput').value;
+            localStorage.setItem('analisadorTexto', texto);
+            
+            const container = document.getElementById('textoContainer');
+            container.innerHTML = '';
+            palavrasMarcadas.clear();
+            
+            atualizarEstatisticas(texto);
+            const paragrafos = texto.split('\n').filter(p => p.trim() !== '');
+            
+            paragrafos.forEach(paragrafo => {
+                const pElem = document.createElement('p');
+                const palavras = paragrafo.split(' ').filter(word => word.trim() !== '');
+                
+                palavras.forEach((palavra, index) => {
+                    const span = document.createElement('span');
+                    span.className = 'word';
+                    span.textContent = palavra + (index !== palavras.length - 1 ? ' ' : '');
+                    
+                    if(palavrasMarcadas.has(palavra.trim())) {
+                        span.classList.add('errada');
+                    }
+
+                    span.onclick = function(e) {
+                        this.classList.toggle('errada');
+                        const palavraFormatada = this.textContent.trim();
+                        
+                        if(this.classList.contains('errada')) {
+                            palavrasMarcadas.add(palavraFormatada);
+                            mostrarSugestao(this, palavraFormatada);
+                        } else {
+                            palavrasMarcadas.delete(palavraFormatada);
+                        }
+                        
+                        atualizarContadorErros();
+                    };
+                    
+                    pElem.appendChild(span);
+                });
+                
+                container.appendChild(pElem);
+            });
+
+            atualizarContadorErros();
+        }
+
+        function mostrarSugestao(elemento, palavra) {
+            const sugestao = sugestoes[palavra.toLowerCase()];
+            if(sugestao) {
+                const divSugestao = document.createElement('div');
+                divSugestao.className = 'sugestao';
+                divSugestao.textContent = `Sugestão: ${sugestao}`;
+                
+                elemento.appendChild(divSugestao);
+                setTimeout(() => divSugestao.remove(), 2000);
+            }
+        }
+
+        function atualizarEstatisticas(texto) {
+            const palavras = texto.trim().split(/\s+/).filter(w => w !== '');
+            const caracteres = texto.replace(/\s/g, '').length;
+            // Supondo uma velocidade de leitura de 200 caracteres por minuto
+            const tempo = Math.ceil(caracteres / 200);
+
+            document.getElementById('contadorPalavras').textContent = palavras.length;
+            document.getElementById('contadorCaracteres').textContent = caracteres;
+            document.getElementById('tempoLeitura').textContent = tempo;
+}
+
+        function copiarErros() {
+            const erros = Array.from(palavrasMarcadas).join(', ');
+            const mensagem = document.getElementById('mensagemCopiar');
+
+        if (erros) {
+            const textarea = document.createElement('textarea');
+            textarea.value = erros;
+            document.body.appendChild(textarea);
+            textarea.select();
+
+        try {
+            document.execCommand('copy');
+            exibirMensagem('Erros copiados para a área de transferência!', 'sucesso');
+        } catch (err) {
+            exibirMensagem('Não foi possível copiar. Tente manualmente.', 'erro');
+        } finally {
+            document.body.removeChild(textarea);
+        }
+        } else {
+            exibirMensagem('Nenhum erro para copiar.', 'erro');
+        }
+    }
+
+    function exibirMensagem(texto, tipo) {
+        let mensagem = document.getElementById('mensagemCopiar');
+    
+    if (!mensagem) {
+        mensagem = document.createElement('div');
+        mensagem.id = 'mensagemCopiar';
+        document.body.appendChild(mensagem);
+    }
+
+    mensagem.textContent = texto;
+    mensagem.className = tipo === 'sucesso' ? 'mensagem sucesso' : 'mensagem erro';
+
+    setTimeout(() => {
+        mensagem.textContent = '';
+        mensagem.className = 'mensagem';
+    }, 3000);
+}
+
+        
+
+        // Restante das funções mantidas
+        function mostrarErros() {
+            const lista = document.getElementById('listaErros');
+            lista.innerHTML = palavrasMarcadas.size > 0 
+                ? Array.from(palavrasMarcadas).join(', ') 
+                : 'Nenhum erro marcado';
+        }
+
+        function limparMarcacoes() {
+            document.querySelectorAll('.errada').forEach(word => {
+                word.classList.remove('errada');
+            });
+            palavrasMarcadas.clear();
+            document.getElementById('listaErros').innerHTML = '';
+            atualizarContadorErros();
+        }
+
+        function resetarTudo() {
+            localStorage.removeItem('analisadorTexto');
+            document.getElementById('textInput').value = '';
+            document.getElementById('textoContainer').innerHTML = '';
+            document.getElementById('listaErros').innerHTML = '';
+            palavrasMarcadas.clear();
+            atualizarContadorErros();
+            atualizarEstatisticas('');
+        }
+
+        function atualizarContadorErros() {
+            document.getElementById('contadorErros').textContent = palavrasMarcadas.size;
+        }
+    </script>
+</body>
+</html>
